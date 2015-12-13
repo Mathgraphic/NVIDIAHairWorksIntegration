@@ -36,6 +36,9 @@ public class HairInstance : MonoBehaviour
     static CameraEvent s_timing = CameraEvent.BeforeImageEffects;
     public string m_hair_asset;
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
+	public Vector3 PositionOffset;
+	public Vector3 EulerRotationOffset;
+	public Vector3 scaleModifier;
     public Transform m_root_bone;
     public bool m_invert_bone_x = true;
     public hwDescriptor m_params = hwDescriptor.default_value;
@@ -54,7 +57,6 @@ public class HairInstance : MonoBehaviour
 	public Texture2D length;
 	public Texture2D weights;
 	public Color ambientLight = new Color (0.0f, 0.0f, 0.0f);
-	private Color oldColor;
 	hwHShader m_hshader = hwHShader.NullHandle;
     hwHAsset m_hasset = hwHAsset.NullHandle;
     hwHInstance m_hinstance = hwHInstance.NullHandle;
@@ -218,7 +220,7 @@ public class HairInstance : MonoBehaviour
             var t = m_bones[i];
             if (t != null)
             {
-                m_skinning_matrices[i] = t.localToWorldMatrix * m_conversion_matrix * m_inv_bindpose[i];
+				m_skinning_matrices[i] = t.localToWorldMatrix * m_conversion_matrix * Matrix4x4.TRS (PositionOffset, Quaternion.Euler (EulerRotationOffset), scaleModifier) * m_inv_bindpose[i];
             }
         }
     }
@@ -261,7 +263,6 @@ public class HairInstance : MonoBehaviour
     void Awake()
     {
 		HairWorksIntegration.hwSetLogCallback();
-		oldColor = ambientLight;
 	}
 	
 	void OnDestroy()
@@ -351,12 +352,15 @@ public class HairInstance : MonoBehaviour
 
        
 			HairWorksIntegration.hwStepSimulation (Time.deltaTime);
-		SphericalHarmonicsL2 aSample;    // SH sample consists of 27 floats   
-		LightProbes.GetInterpolatedProbe(this.transform.position, this.GetComponent<MeshRenderer>(), out aSample);
-			for (int iC=0; iC<3; iC++) {
-				avCoeff[iC] = new Vector4((float)aSample [iC, 3], aSample [iC, 1], aSample [iC, 2], aSample [iC, 0] - aSample [iC, 6]);
+		if (LightmapSettings.lightProbes.count > 0) {
+			SphericalHarmonicsL2 aSample;    // SH sample consists of 27 floats   
+			LightProbes.GetInterpolatedProbe (this.transform.position, this.GetComponent<MeshRenderer> (), out aSample);
+
+			aSample.AddAmbientLight (ambientLight);
+			for (int iC = 0; iC < 3; iC++) {
+				avCoeff [iC] = new Vector4 ((float)aSample [iC, 3], aSample [iC, 1], aSample [iC, 2], aSample [iC, 0] - aSample [iC, 6]);
 			}
-			for (int iC=0; iC<3; iC++) {
+			for (int iC = 0; iC < 3; iC++) {
 				avCoeff [iC + 3].x = aSample [iC, 4];
 				avCoeff [iC + 3].y = aSample [iC, 5];
 				avCoeff [iC + 3].z = 3.0f * aSample [iC, 6];
@@ -366,12 +370,17 @@ public class HairInstance : MonoBehaviour
 			avCoeff [6].y = aSample [1, 8];
 			avCoeff [6].y = aSample [2, 8];
 			avCoeff [6].w = 1.0f;
-		if (oldColor != ambientLight) {
-			aSample.AddAmbientLight (ambientLight);
-			oldColor = ambientLight;
-		}
+			
 
-		
+		} else {
+			avCoeff [0] = Vector4.zero;
+			avCoeff [1] = Vector4.zero;
+			avCoeff [2] = Vector4.zero;
+			avCoeff [3] = Vector4.zero;
+			avCoeff [4] = Vector4.zero;
+			avCoeff [5] = Vector4.zero;
+			avCoeff [6] = Vector4.zero;
+		}
 		
 	}
 	
@@ -461,7 +470,10 @@ public class HairInstance : MonoBehaviour
             }
 
         }
-
+		//foreach (HairLight hLight in HairLight.GetInstances()) {
+			//if (Camera.current == Camera.main)
+				//hLight.RenderShadowDepth (Camera.main);
+		//}
         HairWorksIntegration.hwBeginScene();
     }
 
@@ -481,6 +493,7 @@ public class HairInstance : MonoBehaviour
 			cam.AddCommandBuffer (s_timing, s_command_buffer);
 			s_cameras.Add (cam);
 		}
+
 		HairWorksIntegration.hwBeginScene();
 	}
 
