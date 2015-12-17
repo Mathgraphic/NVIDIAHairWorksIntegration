@@ -38,7 +38,7 @@ public class HairInstance : MonoBehaviour
     public string m_hair_shader = "HairWorksIntegration/DefaultHairShader.cso";
 	public Vector3 PositionOffset;
 	public Vector3 EulerRotationOffset;
-	public Vector3 scaleModifier;
+	public Vector3 scaleModifier = Vector3.one;
     public Transform m_root_bone;
     public bool m_invert_bone_x = true;
     public hwDescriptor m_params = hwDescriptor.default_value;
@@ -234,24 +234,28 @@ public class HairInstance : MonoBehaviour
 
 
 #if UNITY_EDITOR
-    void Reset()
+  public  void Reset()
     {
         var skinned_mesh_renderer = GetComponent<SkinnedMeshRenderer>();
         m_root_bone = skinned_mesh_renderer!=null ? skinned_mesh_renderer.rootBone : GetComponent<Transform>();
 
         var renderer = GetComponent<Renderer>();
-        if(renderer == null)
-        {
-            m_probe_mesh = new Mesh();
+
+		if (GetComponent<MeshRenderer>() == null)
+			gameObject.AddComponent<MeshRenderer>();
+		if (GetComponent<MeshFilter>() == null)
+			gameObject.AddComponent<MeshFilter>();
+		
+            m_probe_mesh = new Mesh(); 
             m_probe_mesh.name = "Probe";
             m_probe_mesh.vertices = new Vector3[1] { Vector3.zero };
             m_probe_mesh.SetIndices(new int[1] { 0 }, MeshTopology.Points, 0);
 
-            var mesh_filter = gameObject.AddComponent<MeshFilter>();
+            var mesh_filter = gameObject.GetComponent<MeshFilter>();
             mesh_filter.sharedMesh = m_probe_mesh;
-            renderer = gameObject.AddComponent<MeshRenderer>();
+            renderer = gameObject.GetComponent<MeshRenderer>();
             renderer.sharedMaterials = new Material[0] { };
-        }
+        
     }
 #endif
 

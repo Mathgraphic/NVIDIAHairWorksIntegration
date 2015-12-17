@@ -37,6 +37,15 @@ public class HairInstanceEditor : Editor
 
         GUILayout.Space(10);
 
+		GUILayout.BeginHorizontal();
+		if (GUILayout.Button ("Reset")) {
+			t.Reset ();
+		}
+
+		GUILayout.EndHorizontal();
+
+		GUILayout.Space(10);
+
         DrawDefaultInspector();
 
         GUILayout.Space(10);
