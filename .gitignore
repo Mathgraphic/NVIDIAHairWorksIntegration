@@ -28,3 +28,5 @@ sysinfo.txt
 # ignore Hairworks dll (should be downloaded by user)
 HairWorksIntegration/Assets/HairWorksIntegration/Plugins/x86_64/GFSDK_HairWorks.win64.dll
 HairWorksIntegration/Assets/HairWorksIntegration/Plugins/x86_64/GFSDK_HairWorks.win64.dll.meta
+HairWorksIntegration/Assets/HairWorksIntegration/Plugins/x86_64/GFSDK_HairWorks.win32.dll
+HairWorksIntegration/Assets/HairWorksIntegration/Plugins/x86_64/GFSDK_HairWorks.win32.dll.meta
